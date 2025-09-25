@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import fetch from "node-fetch"; // npm install node-fetch@3
-import { checkpoints, getCheckpointStatistics } from "./js/common.js";
+import { checkpoints, getCheckpointStatistics } from "./public/js/script.js";
 
 const dataFile = path.resolve("stats.json");
 
