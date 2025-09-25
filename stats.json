@@ -13,5 +13,20 @@
         "carLastDay": 354
       }
     ]
+  },
+  {
+    "timestamp": "2025-09-25T22:09:23.817Z",
+    "data": [
+      {
+        "name": "Benyakoni",
+        "carLastHour": 7,
+        "carLastDay": 200
+      },
+      {
+        "name": "Kamennii Log",
+        "carLastHour": 9,
+        "carLastDay": 355
+      }
+    ]
   }
 ]
