@@ -1,13 +1,13 @@
 name: Update Border Stats
 
 on:
-  #schedule:
-    #- cron: '* * * * *'  # раз в час (UTC)
+  schedule:
+    - cron: '0 * * * *'  # раз в час (UTC)
   workflow_dispatch:      # возможность запускать вручную
 
 permissions:
   contents: write 
-  
+
 jobs:
   update-stats:
     runs-on: ubuntu-latest
