@@ -36,7 +36,15 @@ async function run() {
 
   let history = [];
   if (fs.existsSync(dataFile)) {
-    history = JSON.parse(fs.readFileSync(dataFile, "utf-8"));
+    const content = fs.readFileSync(dataFile, "utf-8").trim();
+    if (content) {
+      try {
+        history = JSON.parse(content);
+      } catch (e) {
+        console.error("Ошибка парсинга stats.json, начинаем заново:", e);
+        history = [];
+      }
+    }
   }
   history.push({ timestamp, data: results });
 
