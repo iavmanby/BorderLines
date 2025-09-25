@@ -1,7 +1,7 @@
 name: Update Border Stats
 
 on:
-  schedule:
+  #schedule:
     #- cron: '* * * * *'  # раз в час (UTC)
   workflow_dispatch:      # возможность запускать вручную
 
