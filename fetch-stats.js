@@ -1,82 +1,73 @@
-import fs from "fs";
-import path from "path";
-import fetch from "node-fetch"; // npm install node-fetch@3
-//import { checkpoints, getCheckpointStatistics } from "./public/js/script.js";
+const RAW_URL = 'data/line-stats.jsonl';
 
-const checkpoints = {
-  benyakoni: { id: "53d94097-2b34-11ec-8467-ac1f6bf889c0", name: "Benyakoni" },
-  "kamennii-log": { id: "b60677d4-8a00-4f93-a781-e129e1692a03", name: "Kamennii Log" }
-};
+const ctxLastDay = document.getElementById('chartLastDay').getContext('2d');
+const ctxCurrent = document.getElementById('chartCurrent').getContext('2d');
 
-const baseUrl = "https://belarusborder.by/info";
-const tokenTest = "test";
-const dataFile = path.resolve("data/line-stats.jsonl");
-const token = "bts47d5f-6420-4f74-8f78-42e8e4370cc4";
+let chartLastDay, chartCurrent;
 
-async function getCheckpointStatistics(checkpointId) {
-  const url = `${baseUrl}/monitoring/statistics?token=${tokenTest}&checkpointId=${checkpointId}`;
-  try{
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
-  return await response.json();
-  }
-  catch(err){
-    console.error(`Ошибка при получении статистики для ${checkpointId}:`, err.message);
-    return { carLastHour: "error", carLastDay: "error" };
-  }
-}
+document.addEventListener('DOMContentLoaded', loadAndDrawCharts);
 
-async function getCurrentCheckpoints() {
-  const url = `${baseUrl}/checkpoint?token=${token}`;
-  try{
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
-  const json = await response.json();
-  return json.result ?? []; // массив объектов
-  }
-  catch(err){
-    console.error("Ошибка при получении текущих пунктов:", err.message);
-    return []; // пустой массив, чтобы цикл не падал
-  }
-}
-
-async function run() {
-  const timestamp = new Date().toISOString();
-  const results = [];
-
-   const currentData = await getCurrentCheckpoints();
-
-  for (const key in checkpoints) {
-    const cp = checkpoints[key];
-    const stat = await getCheckpointStatistics(cp.id);
-    const current = currentData.find(c => c.id === cp.id);
-    results.push({
-      name: cp.name,
-      carLastHour: stat.carLastHour ?? "error",
-      carLastDay: stat.carLastDay ?? "error",
-      currentCar: current?.countCar ?? "error",
+function loadAndDrawCharts() {
+  fetch(RAW_URL)
+    .then(res => {
+      if (!res.ok) throw new Error(`Ошибка HTTP ${res.status}`);
+      return res.text();
+    })
+    .then(text => {
+      const lines = text.split('\n').filter(l => l).map(JSON.parse);
+      // Строим два графика
+      drawChart(ctxLastDay, lines, 'carLastDay', 'Машины за последние сутки', chartLastDay);
+      drawChart(ctxCurrent, lines, 'currentCar', 'Текущие машины в очереди', chartCurrent);
+    })
+    .catch(err => {
+      console.error('Ошибка при загрузке данных:', err);
+      alert('Не удалось загрузить данные. Проверьте доступность файла.');
     });
-  }
-
-  /*let history = [];
-  if (fs.existsSync(dataFile)) {
-    const content = fs.readFileSync(dataFile, "utf-8").trim();
-    if (content) {
-      try {
-        history = JSON.parse(content);
-      } catch (e) {
-        console.error("Ошибка парсинга stats.json, начинаем заново:", e);
-        history = [];
-      }
-    }
-  }
-  history.push({ timestamp, data: results });
-
-  fs.writeFileSync(dataFile, JSON.stringify(history, null, 2), "utf-8");*/
-  // Добавляем одну строку JSON в файл
-  const record = { timestamp, data: results };
-  fs.appendFileSync(dataFile, JSON.stringify(record) + "\n", "utf-8");
-  console.log(`Обновлено ${results.length} пунктов на ${timestamp}`);
 }
 
-run().catch(err => console.error(err));
+/**
+ * Универсальная функция для построения графика
+ * @param {CanvasRenderingContext2D} ctx - canvas context
+ * @param {Array} dataHistory - массив объектов статистики
+ * @param {string} key - ключ данных в объекте (carLastDay, currentCar и т.д.)
+ * @param {string} title - заголовок графика
+ * @param {Chart|null} chartInstance - существующий chart для разрушения перед перерисовкой
+ */
+function drawChart(ctx, dataHistory, key, title, chartInstance) {
+  if (!dataHistory.length) return;
+
+  const labels = dataHistory.map(item => new Date(item.timestamp).toLocaleTimeString());
+  const checkpointNames = dataHistory[0].data.map(d => d.name);
+
+  const datasets = checkpointNames.map((name, idx) => ({
+    label: name,
+    data: dataHistory.map(item => item.data[idx][key] ?? 0),
+    borderColor: `hsl(${idx * 60}, 70%, 50%)`,
+    backgroundColor: `hsla(${idx * 60}, 70%, 50%, 0.2)`,
+    fill: true,
+    tension: 0.3
+  }));
+
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        title: { display: true, text: title },
+        tooltip: { mode: 'index', intersect: false },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+        }
+      },
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      scales: { y: { beginAtZero: true } }
+    },
+    plugins: [ChartZoom]
+  });
+
+  return chartInstance;
+}
