@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import fetch from "node-fetch"; // npm install node-fetch@3
-//import { checkpoints, getCheckpointStatistics } from "./public/js/script.js";
 
 const checkpoints = {
   benyakoni: { id: "53d94097-2b34-11ec-8467-ac1f6bf889c0", name: "Benyakoni" },
@@ -58,21 +57,6 @@ async function run() {
     });
   }
 
-  /*let history = [];
-  if (fs.existsSync(dataFile)) {
-    const content = fs.readFileSync(dataFile, "utf-8").trim();
-    if (content) {
-      try {
-        history = JSON.parse(content);
-      } catch (e) {
-        console.error("Ошибка парсинга stats.json, начинаем заново:", e);
-        history = [];
-      }
-    }
-  }
-  history.push({ timestamp, data: results });
-
-  fs.writeFileSync(dataFile, JSON.stringify(history, null, 2), "utf-8");*/
   // Добавляем одну строку JSON в файл
   const record = { timestamp, data: results };
   fs.appendFileSync(dataFile, JSON.stringify(record) + "\n", "utf-8");
