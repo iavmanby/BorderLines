@@ -14,17 +14,29 @@ const dataFile = path.resolve("stats.json");
 
 async function getCheckpointStatistics(checkpointId) {
   const url = `${baseUrl}/monitoring/statistics?token=${tokenTest}&checkpointId=${checkpointId}`;
+  try{
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
   return await response.json();
+  }
+  catch(err){
+    console.error(`Ошибка при получении статистики для ${checkpointId}:`, err.message);
+    return { carLastHour: "error", carLastDay: "error" };
+  }
 }
 
 async function getCurrentCheckpoints() {
   const url = `${baseUrl}/checkpoint?token=${tokenTest}`;
+  try{
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
   const json = await response.json();
-  return json.result; // массив объектов
+  return json.result ?? []; // массив объектов
+  }
+  catch(err){
+    console.error("Ошибка при получении текущих пунктов:", err.message);
+    return []; // пустой массив, чтобы цикл не падал
+  }
 }
 
 async function run() {
@@ -39,9 +51,9 @@ async function run() {
     const current = currentData.find(c => c.id === cp.id);
     results.push({
       name: cp.name,
-      carLastHour: stat.carLastHour,
-      carLastDay: stat.carLastDay,
-      currentCar: current ? current.countCar : null,
+      carLastHour: stat.carLastHour ?? "error",
+      carLastDay: stat.carLastDay ?? "error",
+      currentCar: current?.countCar ?? "error",
     });
   }
 

@@ -5,16 +5,37 @@ const checkpoints = {
 
 const baseUrl = "https://belarusborder.by/info";
 const tokenTest = "test";
-
+const token = "bts47d5f-6420-4f74-8f78-42e8e4370cc4";
 /**
  * Возвращает статистику для указанного checkpointId
  * @param {string} checkpointId
  */
 async function getCheckpointStatistics(checkpointId) {
   const url = `${baseUrl}/monitoring/statistics?token=${tokenTest}&checkpointId=${checkpointId}`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
-  return await response.json();
+  try{
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
+    return await response.json();
+  }
+  catch (err) {
+    console.error(`Ошибка при получении статистики для ${checkpointId}:`, err.message);
+    return { carLastHour: "error", carLastDay: "error" };
+  }
+}
+
+
+async function getCurrentCheckpoints() {
+  const url = `${baseUrl}/checkpoint?token=${token}`;
+  try{
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);  
+    const json = await response.json();
+    return json.result ?? []; // массив объектов
+  }  
+  catch (err) {
+    console.error("Ошибка при получении текущих пунктов:", err.message);
+    return []; // возвращаем пустой массив, чтобы цикл не падал
+  }
 }
 
 // === Функция рендеринга таблицы ===
@@ -24,6 +45,7 @@ function renderTable(data) {
       <td>${d.name}</td>
       <td>${d.carLastHour}</td>
       <td>${d.carLastDay}</td>
+      <td>${d.currentCar}</td>
     </tr>
   `).join("");
 
@@ -34,6 +56,7 @@ function renderTable(data) {
           <th>Переход</th>
           <th>За последний час</th>
           <th>За день</th>
+          <th>Сейчас в очереди</th>
         </tr>
       </thead>
       <tbody>
@@ -47,14 +70,17 @@ function renderTable(data) {
 (async () => {
   const output = document.getElementById("output");
   try {
+    const currentData = await getCurrentCheckpoints();
     const results = [];
     for (const key in checkpoints) {
       const cp = checkpoints[key];
       const stat = await getCheckpointStatistics(cp.id);
+      const current = currentData.find(c => c.id === cp.id);
       results.push({
         name: cp.name,
-        carLastHour: stat.carLastHour,
-        carLastDay: stat.carLastDay
+        carLastHour: stat.carLastHour ?? "error",
+        carLastDay: stat.carLastDay ?? "error",
+        currentCar: current?.countCar ?? "error",
       });
     }
     output.innerHTML = renderTable(results);
