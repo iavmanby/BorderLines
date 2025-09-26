@@ -1,24 +1,24 @@
-const loadFileBtn = document.getElementById('loadFileBtn');
+
+const RAW_URL = 'data/line-stats.jsonl';
 const ctx = document.getElementById('checkpointChart').getContext('2d');
 let chart;
 
-loadFileBtn.addEventListener('click', () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.jsonl';
-  input.onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function() {
-      const lines = reader.result.split('\n').filter(l => l).map(JSON.parse);
+function loadAndDrawChart() {
+  fetch(RAW_URL)
+    .then(res => {
+      if (!res.ok) throw new Error(`Ошибка HTTP ${res.status}`);
+      return res.text();
+    })
+    .then(text => {
+      const lines = text.split('\n').filter(l => l).map(JSON.parse);
       drawChart(lines);
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-});
+    })
+    .catch(err => {
+      console.error('Ошибка при загрузке данных:', err);
+      alert('Не удалось загрузить данные. Проверьте Raw URL и доступность файла.');
+    });
+}
 
 function drawChart(dataHistory) {
   if (!dataHistory.length) return;
@@ -35,7 +35,7 @@ function drawChart(dataHistory) {
     tension: 0.3
   }));
 
-  if (chart) chart.destroy(); // удаляем предыдущий график
+  if (chart) chart.destroy();
   chart = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
@@ -55,3 +55,6 @@ function drawChart(dataHistory) {
     plugins: [ChartZoom]
   });
 }
+
+// Запускаем отрисовку при загрузке страницы
+document.addEventListener('DOMContentLoaded', loadAndDrawChart);

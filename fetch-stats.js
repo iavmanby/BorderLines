@@ -10,7 +10,7 @@ const checkpoints = {
 
 const baseUrl = "https://belarusborder.by/info";
 const tokenTest = "test";
-const dataFile = path.resolve("line-stats.jsonl");
+const dataFile = path.resolve("data/line-stats.jsonl");
 const token = "bts47d5f-6420-4f74-8f78-42e8e4370cc4";
 
 async function getCheckpointStatistics(checkpointId) {
