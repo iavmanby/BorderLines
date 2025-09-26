@@ -10,7 +10,6 @@ const checkpoints = {
 
 const baseUrl = "https://belarusborder.by/info";
 const tokenTest = "test";
-
 const dataFile = path.resolve("stats.json");
 
 async function getCheckpointStatistics(checkpointId) {
@@ -20,17 +19,29 @@ async function getCheckpointStatistics(checkpointId) {
   return await response.json();
 }
 
+async function getCurrentCheckpoints() {
+  const url = `${baseUrl}/checkpoint?token=${tokenTest}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
+  const json = await response.json();
+  return json.result; // массив объектов
+}
+
 async function run() {
   const timestamp = new Date().toISOString();
   const results = [];
 
+   const currentData = await getCurrentCheckpoints();
+
   for (const key in checkpoints) {
     const cp = checkpoints[key];
-    const stat = await getCheckpointStatistics(cp.id, fetch);
+    const stat = await getCheckpointStatistics(cp.id);
+    const current = currentData.find(c => c.id === cp.id);
     results.push({
       name: cp.name,
       carLastHour: stat.carLastHour,
-      carLastDay: stat.carLastDay
+      carLastDay: stat.carLastDay,
+      currentCar: current ? current.countCar : null,
     });
   }
 
