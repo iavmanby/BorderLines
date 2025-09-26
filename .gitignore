@@ -118,6 +118,3 @@ temp/
 
 # OS generated files
 Thumbs.db
-
-# Project specific
-data/line-stats.jsonl
