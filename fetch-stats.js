@@ -10,7 +10,8 @@ const checkpoints = {
 
 const baseUrl = "https://belarusborder.by/info";
 const tokenTest = "test";
-const dataFile = path.resolve("stats.json");
+const dataFile = path.resolve("line-stats.jsonl");
+const token = "bts47d5f-6420-4f74-8f78-42e8e4370cc4";
 
 async function getCheckpointStatistics(checkpointId) {
   const url = `${baseUrl}/monitoring/statistics?token=${tokenTest}&checkpointId=${checkpointId}`;
@@ -26,7 +27,7 @@ async function getCheckpointStatistics(checkpointId) {
 }
 
 async function getCurrentCheckpoints() {
-  const url = `${baseUrl}/checkpoint?token=${tokenTest}`;
+  const url = `${baseUrl}/checkpoint?token=${token}`;
   try{
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
@@ -57,7 +58,7 @@ async function run() {
     });
   }
 
-  let history = [];
+  /*let history = [];
   if (fs.existsSync(dataFile)) {
     const content = fs.readFileSync(dataFile, "utf-8").trim();
     if (content) {
@@ -71,7 +72,9 @@ async function run() {
   }
   history.push({ timestamp, data: results });
 
-  fs.writeFileSync(dataFile, JSON.stringify(history, null, 2), "utf-8");
+  fs.writeFileSync(dataFile, JSON.stringify(history, null, 2), "utf-8");*/
+  // Добавляем одну строку JSON в файл
+  fs.appendFileSync(dataFile, JSON.stringify(record) + "\n", "utf-8");
   console.log(`Обновлено ${results.length} пунктов на ${timestamp}`);
 }
 
