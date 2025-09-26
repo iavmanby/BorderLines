@@ -1,10 +1,13 @@
-
 const RAW_URL = 'data/line-stats.jsonl';
-const ctx = document.getElementById('checkpointChart').getContext('2d');
-let chart;
 
+const ctxLastDay = document.getElementById('chartLastDay').getContext('2d');
+const ctxCurrent = document.getElementById('chartCurrent').getContext('2d');
 
-function loadAndDrawChart() {
+let chartLastDay, chartCurrent;
+
+document.addEventListener('DOMContentLoaded', loadAndDrawCharts);
+
+function loadAndDrawCharts() {
   fetch(RAW_URL)
     .then(res => {
       if (!res.ok) throw new Error(`Ошибка HTTP ${res.status}`);
@@ -12,15 +15,25 @@ function loadAndDrawChart() {
     })
     .then(text => {
       const lines = text.split('\n').filter(l => l).map(JSON.parse);
-      drawChart(lines);
+      // Строим два графика
+      drawChart(ctxLastDay, lines, 'carLastDay', 'Машины за последние сутки', chartLastDay);
+      drawChart(ctxCurrent, lines, 'currentCar', 'Текущие машины в очереди', chartCurrent);
     })
     .catch(err => {
       console.error('Ошибка при загрузке данных:', err);
-      alert('Не удалось загрузить данные. Проверьте Raw URL и доступность файла.');
+      alert('Не удалось загрузить данные. Проверьте доступность файла.');
     });
 }
 
-function drawChart(dataHistory) {
+/**
+ * Универсальная функция для построения графика
+ * @param {CanvasRenderingContext2D} ctx - canvas context
+ * @param {Array} dataHistory - массив объектов статистики
+ * @param {string} key - ключ данных в объекте (carLastDay, currentCar и т.д.)
+ * @param {string} title - заголовок графика
+ * @param {Chart|null} chartInstance - существующий chart для разрушения перед перерисовкой
+ */
+function drawChart(ctx, dataHistory, key, title, chartInstance) {
   if (!dataHistory.length) return;
 
   const labels = dataHistory.map(item => new Date(item.timestamp).toLocaleTimeString());
@@ -28,21 +41,22 @@ function drawChart(dataHistory) {
 
   const datasets = checkpointNames.map((name, idx) => ({
     label: name,
-    data: dataHistory.map(item => item.data[idx].carLastHour ?? 0),
+    data: dataHistory.map(item => item.data[idx][key] ?? 0),
     borderColor: `hsl(${idx * 60}, 70%, 50%)`,
     backgroundColor: `hsla(${idx * 60}, 70%, 50%, 0.2)`,
     fill: true,
     tension: 0.3
   }));
 
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
     options: {
       responsive: true,
       plugins: {
-        title: { display: true, text: 'Автомобили за последний час' },
+        title: { display: true, text: title },
         tooltip: { mode: 'index', intersect: false },
         zoom: {
           pan: { enabled: true, mode: 'x' },
@@ -54,7 +68,6 @@ function drawChart(dataHistory) {
     },
     plugins: [ChartZoom]
   });
-}
 
-// Запускаем отрисовку при загрузке страницы
-document.addEventListener('DOMContentLoaded', loadAndDrawChart);
+  return chartInstance;
+}
