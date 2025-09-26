@@ -74,6 +74,7 @@ async function run() {
 
   fs.writeFileSync(dataFile, JSON.stringify(history, null, 2), "utf-8");*/
   // Добавляем одну строку JSON в файл
+  const record = { timestamp, data: results };
   fs.appendFileSync(dataFile, JSON.stringify(record) + "\n", "utf-8");
   console.log(`Обновлено ${results.length} пунктов на ${timestamp}`);
 }
