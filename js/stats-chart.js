@@ -4,6 +4,7 @@ const ctxLastDay = document.getElementById('chartLastDay').getContext('2d');
 const ctxCurrent = document.getElementById('chartCurrent').getContext('2d');
 
 let chartLastDay, chartCurrent;
+let originalData;
 
 document.addEventListener('DOMContentLoaded', loadAndDrawCharts);
 
@@ -15,9 +16,10 @@ function loadAndDrawCharts() {
     })
     .then(text => {
       const lines = text.split('\n').filter(l => l).map(JSON.parse);
+      originalData = lines;
       // Строим два графика
-      drawChart(ctxLastDay, lines, 'carLastDay', 'Машины за последние сутки', chartLastDay);
-      drawChart(ctxCurrent, lines, 'currentCar', 'Текущие машины в очереди', chartCurrent);
+      chartLastDay = drawChart(ctxLastDay, lines, 'carLastDay', 'Машины за последние сутки', chartLastDay);
+      chartCurrent = drawChart(ctxCurrent, lines, 'currentCar', 'Текущие машины в очереди', chartCurrent);
     })
     .catch(err => {
       console.error('Ошибка при загрузке данных:', err);
@@ -70,4 +72,22 @@ function drawChart(ctx, dataHistory, key, title, chartInstance) {
   });
 
   return chartInstance;
+}
+
+function filterCharts(period) {
+  let filteredData = originalData;
+  const now = Date.now();
+  const periods = {
+    '1day': 24 * 60 * 60 * 1000,
+    'week': 7 * 24 * 60 * 60 * 1000,
+    'month': 30 * 24 * 60 * 60 * 1000,
+    '6months': 180 * 24 * 60 * 60 * 1000,
+    'all': Infinity
+  };
+  if (period !== 'all') {
+    filteredData = originalData.filter(item => now - item.timestamp < periods[period]);
+  }
+  // Перерисовываем графики с отфильтрованными данными
+  chartLastDay = drawChart(ctxLastDay, filteredData, 'carLastDay', 'Машины за последние сутки', chartLastDay);
+  chartCurrent = drawChart(ctxCurrent, filteredData, 'currentCar', 'Текущие машины в очереди', chartCurrent);
 }
