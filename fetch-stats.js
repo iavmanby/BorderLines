@@ -31,11 +31,11 @@ async function getCurrentCheckpoints() {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);
   const json = await response.json();
-  return json.result ?? []; // массив объектов
+  return json.result ?? [];
   }
   catch(err){
     console.error("Ошибка при получении текущих пунктов:", err.message);
-    return []; // пустой массив, чтобы цикл не падал
+    return []; 
   }
 }
 
@@ -57,7 +57,7 @@ async function run() {
     });
   }
 
-  // Добавляем одну строку JSON в файл
+  
   const record = { timestamp, data: results };
   fs.appendFileSync(dataFile, JSON.stringify(record) + "\n", "utf-8");
   console.log(`Обновлено ${results.length} пунктов на ${timestamp}`);

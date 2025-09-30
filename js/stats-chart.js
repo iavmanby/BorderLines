@@ -16,8 +16,10 @@ function loadAndDrawCharts() {
     })
     .then(text => {
       const lines = text.split('\n').filter(l => l).map(JSON.parse);
+      
+      lines.forEach(item => item.timestamp = Date.parse(item.timestamp));
       originalData = lines;
-      // Строим два графика
+      
       chartLastDay = drawChart(ctxLastDay, lines, 'carLastDay', 'Машины за последние сутки', chartLastDay);
       chartCurrent = drawChart(ctxCurrent, lines, 'currentCar', 'Текущие машины в очереди', chartCurrent);
     })
@@ -27,18 +29,41 @@ function loadAndDrawCharts() {
     });
 }
 
-/**
- * Универсальная функция для построения графика
- * @param {CanvasRenderingContext2D} ctx - canvas context
- * @param {Array} dataHistory - массив объектов статистики
- * @param {string} key - ключ данных в объекте (carLastDay, currentCar и т.д.)
- * @param {string} title - заголовок графика
- * @param {Chart|null} chartInstance - существующий chart для разрушения перед перерисовкой
- */
 function drawChart(ctx, dataHistory, key, title, chartInstance) {
   if (!dataHistory.length) return;
 
-  const labels = dataHistory.map(item => new Date(item.timestamp).toLocaleTimeString());
+//   const labels = dataHistory.map(item => new Date(item.timestamp).toLocaleString("ru-RU", {
+//   day: "2-digit",
+//   month: "2-digit",
+//   year: "2-digit",
+//   hour: "2-digit",
+//   minute: "2-digit",
+//   weekday: "short",
+//   hour12: false
+// }));
+const labels = dataHistory.map(item => {
+  const d = new Date(item.timestamp);
+
+  
+  //const weekday = d.toLocaleString("ru-RU", { weekday: "short" }); // "пн", "вт"...
+  
+  // Дата
+  const date = d.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit"
+  });
+
+  const time = d.toLocaleString("ru-RU", {
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+  // passing array for n-rows lable
+  return [time, date];
+});
   const checkpointNames = dataHistory[0].data.map(d => d.name);
 
   const datasets = checkpointNames.map((name, idx) => ({
@@ -87,7 +112,7 @@ function filterCharts(period) {
   if (period !== 'all') {
     filteredData = originalData.filter(item => now - item.timestamp < periods[period]);
   }
-  // Перерисовываем графики с отфильтрованными данными
+  
   chartLastDay = drawChart(ctxLastDay, filteredData, 'carLastDay', 'Машины за последние сутки', chartLastDay);
   chartCurrent = drawChart(ctxCurrent, filteredData, 'currentCar', 'Текущие машины в очереди', chartCurrent);
 }

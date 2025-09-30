@@ -6,10 +6,7 @@ const checkpoints = {
 const baseUrl = "https://belarusborder.by/info";
 const tokenTest = "test";
 const token = "bts47d5f-6420-4f74-8f78-42e8e4370cc4";
-/**
- * Возвращает статистику для указанного checkpointId
- * @param {string} checkpointId
- */
+
 async function getCheckpointStatistics(checkpointId) {
   const url = `${baseUrl}/monitoring/statistics?token=${tokenTest}&checkpointId=${checkpointId}`;
   try{
@@ -30,15 +27,15 @@ async function getCurrentCheckpoints() {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Ошибка HTTP ${response.status}`);  
     const json = await response.json();
-    return json.result ?? []; // массив объектов
+    return json.result ?? [];
   }  
   catch (err) {
     console.error("Ошибка при получении текущих пунктов:", err.message);
-    return []; // возвращаем пустой массив, чтобы цикл не падал
+    return []; 
   }
 }
 
-// === Функция рендеринга таблицы ===
+
 function renderTable(data) {
   const rows = data.map(d => `
     <tr>
@@ -66,7 +63,7 @@ function renderTable(data) {
   `;
 }
 
-// === Основной блок, выполняется сразу ===
+
 (async () => {
   const output = document.getElementById("output");
   try {
