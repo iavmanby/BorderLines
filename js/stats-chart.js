@@ -5,6 +5,8 @@ const ctxCurrent = document.getElementById('chartCurrent').getContext('2d');
 
 let chartLastDay, chartCurrent;
 let originalData;
+const DEFAULT_PERIOD = 'all';
+let currentPeriod = localStorage.getItem('selectedPeriod') || DEFAULT_PERIOD;
 
 document.addEventListener('DOMContentLoaded', loadAndDrawCharts);
 
@@ -19,9 +21,8 @@ function loadAndDrawCharts() {
       
       lines.forEach(item => item.timestamp = Date.parse(item.timestamp));
       originalData = lines;
-      
-      chartLastDay = drawChart(ctxLastDay, lines, 'carLastDay', 'Машины за последние сутки', chartLastDay);
-      chartCurrent = drawChart(ctxCurrent, lines, 'currentCar', 'Текущие машины в очереди', chartCurrent);
+
+      filterCharts(currentPeriod);
     })
     .catch(err => {
       console.error('Ошибка при загрузке данных:', err);
@@ -30,20 +31,10 @@ function loadAndDrawCharts() {
 }
 
 function drawChart(ctx, dataHistory, key, title, chartInstance) {
-  if (!dataHistory.length) return;
+  if (!dataHistory.length) return chartInstance;
 
-//   const labels = dataHistory.map(item => new Date(item.timestamp).toLocaleString("ru-RU", {
-//   day: "2-digit",
-//   month: "2-digit",
-//   year: "2-digit",
-//   hour: "2-digit",
-//   minute: "2-digit",
-//   weekday: "short",
-//   hour12: false
-// }));
 const labels = dataHistory.map(item => {
   const d = new Date(item.timestamp);
-
   
   //const weekday = d.toLocaleString("ru-RU", { weekday: "short" }); // "пн", "вт"...
   
@@ -100,6 +91,10 @@ const labels = dataHistory.map(item => {
 }
 
 function filterCharts(period) {
+  currentPeriod = period;
+  localStorage.setItem('selectedPeriod', period);
+  updateActiveButton(period);
+
   let filteredData = originalData;
   const now = Date.now();
   const periods = {
@@ -112,7 +107,23 @@ function filterCharts(period) {
   if (period !== 'all') {
     filteredData = originalData.filter(item => now - item.timestamp < periods[period]);
   }
-  
+
   chartLastDay = drawChart(ctxLastDay, filteredData, 'carLastDay', 'Машины за последние сутки', chartLastDay);
   chartCurrent = drawChart(ctxCurrent, filteredData, 'currentCar', 'Текущие машины в очереди', chartCurrent);
+}
+
+function updateActiveButton(period) {
+  document.querySelectorAll('#filter-buttons button').forEach(btn => btn.classList.remove('active'));
+
+  const buttonMap = {
+    'all': 'Все',
+    '6months': '6 месяцев',
+    'month': 'Месяц',
+    'week': 'Неделя',
+    '1day': '1 день'
+  };
+
+  const text = buttonMap[period];
+  const btn = Array.from(document.querySelectorAll('#filter-buttons button')).find(btn => btn.textContent === text);
+  if (btn) btn.classList.add('active');
 }
