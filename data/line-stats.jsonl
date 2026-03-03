@@ -3525,3 +3525,4 @@
 {"timestamp":"2026-03-03T15:38:35.744Z","data":[{"name":"Benyakoni","carLastHour":6,"carLastDay":148,"currentCar":0},{"name":"Kamennii Log","carLastHour":6,"carLastDay":212,"currentCar":0}]}
 {"timestamp":"2026-03-03T16:35:23.729Z","data":[{"name":"Benyakoni","carLastHour":1,"carLastDay":144,"currentCar":0},{"name":"Kamennii Log","carLastHour":3,"carLastDay":204,"currentCar":0}]}
 {"timestamp":"2026-03-03T17:35:09.714Z","data":[{"name":"Benyakoni","carLastHour":4,"carLastDay":139,"currentCar":0},{"name":"Kamennii Log","carLastHour":6,"carLastDay":205,"currentCar":0}]}
+{"timestamp":"2026-03-03T18:35:15.572Z","data":[{"name":"Benyakoni","carLastHour":2,"carLastDay":137,"currentCar":0},{"name":"Kamennii Log","carLastHour":7,"carLastDay":206,"currentCar":0}]}
